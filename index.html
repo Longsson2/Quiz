@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Descubra Seu Método de Estudo</title>
+
+<style>
+
+/* ============================= */
+/* RESET BÁSICO DO NAVEGADOR     */
+/* Remove margens e define fonte */
+/* ============================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ============================= */
+/* FUNDO PRINCIPAL (PRETO)       */
+/* ============================= */
+body{
+    background:#000; /* fundo preto */
+    color:#fff; /* texto branco */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+/* ============================= */
+/* CONTAINER CENTRAL             */
+/* ============================= */
+.container{
+    width:100%;
+    max-width:700px;
+    background:#111; /* cinza escuro */
+    padding:40px;
+    border-radius:12px;
+    box-shadow:0 0 40px rgba(255,255,255,0.05);
+    text-align:center;
+}
+
+/* ============================= */
+/* BOTÕES                        */
+/* ============================= */
+button{
+    background:#fff;
+    color:#000;
+    border:none;
+    padding:12px 20px;
+    margin-top:20px;
+    cursor:pointer;
+    font-weight:600;
+    border-radius:6px;
+    transition:0.3s;
+}
+
+/* Efeito ao passar o mouse */
+button:hover{
+    background:#ccc;
+}
+
+/* ============================= */
+/* OPÇÕES DO QUIZ                */
+/* ============================= */
+.option{
+    display:block;
+    margin:10px 0;
+    padding:12px;
+    background:#222;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+/* Hover das opções */
+.option:hover{
+    background:#333;
+}
+
+/* Quando opção está selecionada */
+.selected{
+    background:#555 !important;
+}
+
+/* ============================= */
+/* BARRA DE PROGRESSO            */
+/* ============================= */
+.progress{
+    height:6px;
+    background:#333;
+    border-radius:3px;
+    margin-bottom:20px;
+    overflow:hidden;
+}
+
+/* Parte branca que cresce */
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:#fff;
+    transition:0.3s;
+}
+
+/* Classe para esconder telas */
+.hidden{
+    display:none;
+}
+
+ul{
+    text-align:left;
+    margin-top:10px;
+}
+
+hr{
+    margin:20px 0;
+    border:0;
+    border-top:1px solid #333;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- ============================= -->
+    <!-- TÍTULO PRINCIPAL              -->
+    <!-- ============================= -->
+    <h1>Descubra Seu Método de Estudo</h1>
+
+    <!-- ============================= -->
+    <!-- TELA INICIAL                  -->
+    <!-- ============================= -->
+    <div id="start-screen">
+        <p>Responda às 35 perguntas e descubra seu estilo predominante.</p>
+        <button onclick="startQuiz()">Começar Quiz</button>
+    </div>
+
+    <!-- ============================= -->
+    <!-- TELA DO QUIZ                  -->
+    <!-- ============================= -->
+    <div id="quiz-screen" class="hidden">
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <!-- Pergunta será inserida aqui -->
+        <h2 id="question"></h2>
+
+        <!-- Opções SIM / TALVEZ / NÃO -->
+        <div id="options"></div>
+
+        <button onclick="nextQuestion()">Próxima</button>
+    </div>
+
+    <!-- ============================= -->
+    <!-- TELA DE RESULTADO             -->
+    <!-- ============================= -->
+    <div id="result-screen" class="hidden"></div>
+
+</div>
+
+<script>
+
+/* =====================================================
+   OBJETO COM TODOS OS ESTILOS DE APRENDIZAGEM
+   Cada estilo possui:
+   - emoji
+   - descrição
+   - 5 dicas personalizadas
+===================================================== */
+const styles = {
+visual:{emoji:"👁️",desc:"Você aprende melhor com imagens e elementos visuais.",
+tips:["Use mapas mentais","Utilize cores nos resumos","Assista videoaulas","Crie diagramas","Use flashcards visuais"]},
+
+auditivo:{emoji:"🎧",desc:"Você aprende melhor ouvindo explicações.",
+tips:["Ouça podcasts","Grave resumos","Explique em voz alta","Participe de debates","Estude com áudios"]},
+
+cinestesico:{emoji:"🤸",desc:"Você aprende melhor praticando.",
+tips:["Faça exercícios práticos","Simule situações","Use objetos físicos","Estude caminhando","Crie projetos"]},
+
+logico:{emoji:"🧠",desc:"Você aprende melhor com lógica e análise.",
+tips:["Resolva problemas","Organize esquemas","Use padrões","Faça conexões estruturadas","Crie sistemas de estudo"]},
+
+leitura:{emoji:"📚",desc:"Você aprende melhor lendo e escrevendo.",
+tips:["Faça resumos","Reescreva conteúdos","Leia livros","Crie listas","Use anotações detalhadas"]},
+
+social:{emoji:"👥",desc:"Você aprende melhor em grupo.",
+tips:["Estude em grupo","Explique para colegas","Ensine alguém","Participe de discussões","Faça trabalhos colaborativos"]},
+
+musical:{emoji:"🎵",desc:"Você aprende melhor com ritmo e música.",
+tips:["Crie rimas","Associe conteúdo a músicas","Use ritmo na memorização","Grave conteúdos cantando","Estude com música leve"]}
+};
+
+/* =====================================================
+   BANCO DE 35 PERGUNTAS
+   Cada pergunta tem:
+   - texto
+   - estilo relacionado
+===================================================== */
+const questionBank = [
+["Você prefere usar gráficos e imagens para estudar?","visual"],
+["Você aprende melhor assistindo vídeos explicativos?","visual"],
+["Você gosta de usar cores diferentes nas anotações?","visual"],
+["Mapas mentais ajudam você a memorizar?","visual"],
+["Diagramas facilitam seu entendimento?","visual"],
+
+["Você aprende melhor ouvindo explicações?","auditivo"],
+["Prefere aulas faladas?","auditivo"],
+["Gosta de discutir em voz alta?","auditivo"],
+["Memoriza ouvindo repetidamente?","auditivo"],
+["Áudios ajudam você a estudar?","auditivo"],
+
+["Você aprende melhor praticando?","cinestesico"],
+["Gosta de experimentar enquanto aprende?","cinestesico"],
+["Prefere atividades práticas?","cinestesico"],
+["Movimento ajuda na concentração?","cinestesico"],
+["Aprende fazendo exercícios?","cinestesico"],
+
+["Você gosta de resolver problemas lógicos?","logico"],
+["Prefere estruturas organizadas?","logico"],
+["Analisa profundamente antes de concluir?","logico"],
+["Gosta de desafios mentais?","logico"],
+["Cria sistemas próprios para estudar?","logico"],
+
+["Você aprende melhor lendo textos?","leitura"],
+["Prefere escrever resumos?","leitura"],
+["Reescrever ajuda na memorização?","leitura"],
+["Gosta de listas organizadas?","leitura"],
+["Livros são sua principal fonte?","leitura"],
+
+["Você prefere estudar em grupo?","social"],
+["Aprende explicando para outros?","social"],
+["Gosta de debates?","social"],
+["Trocar ideias facilita?","social"],
+["Prefere trabalhos colaborativos?","social"],
+
+["Música ajuda na memorização?","musical"],
+["Cria rimas para lembrar?","musical"],
+["Ritmo facilita concentração?","musical"],
+["Estuda com música leve?","musical"],
+["Associa conteúdo a sons?","musical"]
+];
+
+/* =====================================================
+   VARIÁVEIS DE CONTROLE
+===================================================== */
+let current = 0; // controla qual pergunta está sendo exibida
+let selectedValue = null; // guarda a resposta escolhida
+
+// Guarda a pontuação de cada estilo
+let scores = {
+visual:0,auditivo:0,cinestesico:0,
+logico:0,leitura:0,social:0,musical:0
+};
+
+/* =====================================================
+   FUNÇÃO PARA INICIAR O QUIZ
+===================================================== */
+function startQuiz(){
+document.getElementById("start-screen").classList.add("hidden");
+document.getElementById("quiz-screen").classList.remove("hidden");
+showQuestion();
+}
+
+/* =====================================================
+   MOSTRA A PERGUNTA ATUAL
+===================================================== */
+function showQuestion(){
+
+selectedValue = null; // limpa seleção anterior
+
+let q = questionBank[current];
+
+// Atualiza texto da pergunta
+document.getElementById("question").innerText =
+`Pergunta ${current+1}: ${q[0]}`;
+
+let optionsDiv = document.getElementById("options");
+optionsDiv.innerHTML = "";
+
+// Cria as 3 opções fixas
+["Sim","Talvez","Não"].forEach((text,index)=>{
+
+    let div = document.createElement("div");
+    div.className="option";
+    div.innerText=text;
+
+    div.onclick=()=>{
+        selectedValue = index;
+        document.querySelectorAll(".option")
+        .forEach(o=>o.classList.remove("selected"));
+        div.classList.add("selected");
+    };
+
+    optionsDiv.appendChild(div);
+});
+
+// Atualiza barra de progresso
+document.getElementById("progress-bar").style.width =
+((current)/35)*100 + "%";
+}
+
+/* =====================================================
+   AVANÇA PARA PRÓXIMA PERGUNTA
+===================================================== */
+function nextQuestion(){
+
+if(selectedValue===null){
+alert("Selecione uma opção!");
+return;
+}
+
+let style = questionBank[current][1];
+
+// Pontuação:
+// SIM = 2
+// TALVEZ = 1
+// NÃO = 0
+if(selectedValue===0) scores[style]+=2;
+if(selectedValue===1) scores[style]+=1;
+
+current++;
+
+if(current<35){
+showQuestion();
+}else{
+showResult();
+}
+}
+
+/* =====================================================
+   MOSTRA RESULTADO FINAL
+===================================================== */
+function showResult(){
+
+document.getElementById("quiz-screen").classList.add("hidden");
+let result = document.getElementById("result-screen");
+result.classList.remove("hidden");
+
+// Descobre maior pontuação
+let max = Math.max(...Object.values(scores));
+
+// Verifica empate
+let winners = Object.keys(scores)
+.filter(k=>scores[k]===max);
+
+let html="<h2>Seu Resultado:</h2>";
+
+winners.forEach(w=>{
+html+=`<h3>${styles[w].emoji} ${w.toUpperCase()}</h3>`;
+html+=`<p>${styles[w].desc}</p><ul>`;
+styles[w].tips.forEach(t=>html+=`<li>${t}</li>`);
+html+="</ul>";
+html+=`<p><strong>Pontuação:</strong> ${scores[w]}</p><hr>`;
+});
+
+html+=`<button onclick="restart()">Refazer Teste</button>`;
+result.innerHTML=html;
+}
+
+/* =====================================================
+   REINICIA O QUIZ
+===================================================== */
+function restart(){
+location.reload(); // recarrega a página
+}
+
+</script>
+</body>
+</html>
